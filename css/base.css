@@ -1,0 +1,95 @@
+/* =========================================================
+   Oink — base: cores (paleta do Figma), reset e layout
+   ========================================================= */
+
+:root {
+  /* Cores primárias */
+  --rosa: #FB88B7;            /* Primária base */
+  --rosa-escuro: #E07AA5;     /* Primária hover */
+  --rosa-tint: #FDECF4;       /* Primária tint */
+  --creme: #FDF5EB;           /* Primária creme */
+  --link: #BE185D;            /* Rosa escuro para textos/links (contraste AA) */
+  --link-hover: #9D174D;
+
+  /* Neutras */
+  --branco: #FFFFFF;          /* neutral-0  */
+  --fundo-geral: #F8FAFC;     /* neutral-50 */
+  --borda-suave: #E2E8F0;     /* neutral-200 */
+  --borda: #CBD5E1;           /* neutral-300 */
+  --icone-inativo: #647488;   /* neutral-500 */
+  --texto-2: #334155;         /* neutral-700 */
+  --texto: #0F172A;           /* neutral-900 */
+  --linha: #F1F5F9;
+
+  /* Status */
+  --sucesso-bg: #DCFCE7;  --sucesso: #15803D;
+  --erro-bg: #FEE2E2;     --erro: #B91C1C;
+  --alerta-bg: #FEF3C7;   --alerta: #845309;
+  --info-bg: #E0F2FE;     --info: #0369A1;
+
+  /* Medidas */
+  --largura-app: 430px;
+  --altura-menu: 70px;
+  --seguro-baixo: env(safe-area-inset-bottom, 0px);
+  --seguro-topo: env(safe-area-inset-top, 0px);
+  --fonte: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--fonte);
+  color: var(--texto);
+  background: #3A2A31;               /* fora do "celular", em telas grandes */
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+[hidden] { display: none !important; }
+img { display: block; max-width: 100%; }
+h1, h2, h3, p { margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--link); }
+a:hover { color: var(--link-hover); }
+
+:focus-visible { outline: 3px solid var(--texto); outline-offset: 2px; }
+
+.visualmente-oculto {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* O app ocupa a tela inteira no celular e fica centralizado
+   com largura de celular em telas maiores (o projeto é só mobile). */
+.app {
+  position: relative;
+  max-width: var(--largura-app);
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--creme);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* Área de conteúdo das telas logadas: deixa espaço para o menu inferior */
+.conteudo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 20px calc(var(--altura-menu) + 36px + var(--seguro-baixo));
+}
+.conteudo--estreito { padding-left: 28px; padding-right: 28px; }
+.conteudo--sem-menu { padding-bottom: calc(36px + var(--seguro-baixo)); }
+
+.empurra-baixo { margin-top: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

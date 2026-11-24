@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FB88B7">
+  <title>Saque e depósito · Oink</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icones/favicon-48.png">
+  <link rel="apple-touch-icon" href="assets/icones/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/componentes.css">
+  <link rel="stylesheet" href="css/paginas.css">
+</head>
+<body>
+  <main class="app">
+    <header class="cabecalho">
+      <a class="btn-icone" href="menu.html" aria-label="Voltar ao menu">
+        <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </a>
+      <h1>Saque e depósito</h1>
+      <span class="selo">Simulação</span>
+    </header>
+
+    <!-- RF12 / RN11: saque e depósito são simulados, sem efeito no saldo -->
+    <form class="conteudo conteudo--estreito" id="form" novalidate>
+      <div class="alternador" role="group" aria-label="Tipo de simulação">
+        <button type="button" data-tipo="saque" aria-pressed="true">Saque</button>
+        <button type="button" data-tipo="deposito" aria-pressed="false">Depósito</button>
+      </div>
+
+      <div class="aviso aviso--info">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM12 16v-4M12 8h.01"/></svg>
+        <span>Isto é só uma simulação. Nenhum valor sai ou entra na sua conta.</span>
+      </div>
+
+      <div class="campo" id="campo-valor">
+        <label for="valor">Valor</label>
+        <input class="input input--valor" id="valor" inputmode="numeric" placeholder="R$ 0,00" aria-describedby="erro-valor">
+        <span class="erro-campo" id="erro-valor"></span>
+      </div>
+
+      <div class="cartao estado" id="resultado" role="status" style="padding: 24px 16px" hidden>
+        <span class="estado__icone estado__icone--sucesso" style="width: 64px; height: 64px">
+          <svg aria-hidden="true" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </span>
+        <h2 style="font-size: 18px">Simulação concluída</h2>
+        <p id="resumo"></p>
+        <p style="font-size: 13px; font-weight: 600; color: var(--texto)" id="saldo"></p>
+      </div>
+
+      <button class="btn btn--primario empurra-baixo" id="simular" type="submit">Simular saque</button>
+      <button class="btn btn--contorno empurra-baixo" id="nova" type="button" hidden>Nova simulação</button>
+    </form>
+  </main>
+
+  <script type="module">
+    import { iniciarPagina } from './js/paginas/comum.js';
+    import * as api from './js/api.js';
+    import { obterCpf } from './js/sessao.js';
+    import { $, $$, mascaraMoeda, lerMoeda, formatarMoeda, erroNoCampo } from './js/ui.js';
+
+    const valor = $('#valor');
+    let tipo = new URLSearchParams(location.search).get('tipo') === 'deposito' ? 'deposito' : 'saque';
+    mascaraMoeda(valor);
+
+    function reiniciar() {
+      $('#resultado').hidden = true;
+      $('#campo-valor').hidden = false;
+      $('#simular').hidden = false;
+      $('#nova').hidden = true;
+      valor.value = '';
+      erroNoCampo(valor, '');
+    }
+
+    function escolher(novo) {
+      tipo = novo;
+      $$('[data-tipo]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tipo === tipo)));
+      $('#simular').textContent = tipo === 'saque' ? 'Simular saque' : 'Simular depósito';
+      reiniciar();
+    }
+    $$('[data-tipo]').forEach((b) => b.addEventListener('click', () => escolher(b.dataset.tipo)));
+    $('#nova').addEventListener('click', reiniciar);
+
+    $('#form').addEventListener('submit', async (evento) => {
+      evento.preventDefault();
+      const v = lerMoeda(valor.value);
+      if (!erroNoCampo(valor, v > 0 ? '' : 'Digite um valor.')) return valor.focus();
+      $('#resumo').textContent = `${tipo === 'saque' ? 'Saque' : 'Depósito'} simulado de ${formatarMoeda(v)}.`;
+      $('#saldo').textContent = 'Seu saldo continua o mesmo.';
+      $('#campo-valor').hidden = true;
+      $('#simular').hidden = true;
+      $('#resultado').hidden = false;
+      $('#nova').hidden = false;
+      try {
+        const { saldo } = await api.consultarConta(obterCpf());
+        $('#saldo').textContent = `Seu saldo continua: ${formatarMoeda(saldo)}`;
+      } catch { /* mantém o texto genérico */ }
+    });
+
+    if (iniciarPagina({ menu: null })) escolher(tipo);
+  </script>
+</body>
+</html>

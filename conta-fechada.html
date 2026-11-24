@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FDF5EB">
+  <title>Conta fechada · Oink</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icones/favicon-48.png">
+  <link rel="apple-touch-icon" href="assets/icones/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/componentes.css">
+  <link rel="stylesheet" href="css/paginas.css">
+</head>
+<body>
+  <main class="app">
+    <!-- RF10 / RN07: reativação em até 7 dias -->
+    <div class="conteudo conteudo--estreito conteudo--sem-menu tela-centro" id="tela-fechada">
+      <img class="mascote" src="assets/img/rosto-rosa.png" alt="">
+      <h1 class="titulo-central" style="font-size: 24px">Sua conta está fechada</h1>
+      <p class="texto-central">Enquanto estiver fechada, transferências e outras movimentações ficam bloqueadas.</p>
+
+      <section class="cartao prazo" id="prazo" aria-label="Prazo para reativar">
+        <div class="prazo__topo"><span>Prazo para reativar</span><span class="prazo__dias" id="dias">…</span></div>
+        <div class="prazo__barra" role="progressbar" aria-label="Dias restantes para reativar" aria-valuemin="0" aria-valuemax="7" id="barra"><i style="width: 0"></i></div>
+        <p id="prazo-texto">Depois desse prazo, a conta será excluída permanentemente.</p>
+      </section>
+
+      <div class="aviso aviso--erro" id="aviso" role="alert" hidden><span id="aviso-texto"></span></div>
+
+      <div class="grupo-botoes empurra-baixo">
+        <button class="btn btn--primario" id="reativar" type="button" disabled>Reativar minha conta</button>
+        <button class="btn btn--contorno" id="sair" type="button">Sair</button>
+      </div>
+    </div>
+
+    <div class="conteudo conteudo--estreito conteudo--sem-menu tela-centro" id="tela-reativada" hidden>
+      <div class="estado" role="status">
+        <span class="estado__icone estado__icone--sucesso" style="width: 88px; height: 88px">
+          <svg aria-hidden="true" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </span>
+        <h2 style="font-size: 24px">Conta reativada!</h2>
+        <p>Que bom ter você de volta. Sua conta está aberta e pronta para usar.</p>
+      </div>
+      <a class="btn btn--primario empurra-baixo" href="inicio.html">Ir para o início</a>
+    </div>
+  </main>
+
+  <script type="module">
+    import { iniciarPagina } from './js/paginas/comum.js';
+    import * as api from './js/api.js';
+    import { REGRAS } from './js/config.js';
+    import { limparSessao, obterCpf, dataDesativacao, limparDesativacao } from './js/sessao.js';
+    import { $, comCarregando, mensagemDeErro } from './js/ui.js';
+
+    const DIA = 24 * 60 * 60 * 1000;
+
+    function mostrarErro(erro) {
+      const { titulo, texto } = mensagemDeErro(erro);
+      $('#aviso-texto').textContent = `${titulo}. ${texto}`;
+      $('#aviso').hidden = false;
+    }
+
+    async function carregar() {
+      try {
+        const conta = await api.consultarConta(obterCpf());
+        if (conta.status === 'ACTIVE') return location.replace('inicio.html');
+        $('#reativar').disabled = false;
+        // A API não devolve a data de desativação: usamos a que o app guardou ao desativar.
+        const desativadaEm = dataDesativacao(obterCpf());
+        if (!desativadaEm) {
+          $('#dias').textContent = 'até 7 dias';
+          $('#barra').hidden = true;
+          $('#prazo-texto').textContent = 'Você pode reativar em até 7 dias depois do encerramento. Depois disso, a conta é excluída permanentemente.';
+          return;
+        }
+        const passados = Math.floor((Date.now() - new Date(desativadaEm).getTime()) / DIA);
+        const restantes = Math.max(0, REGRAS.DIAS_PARA_REATIVAR - passados);
+        $('#dias').textContent = restantes === 0 ? 'Encerrado' : restantes === 1 ? '1 dia' : `${restantes} dias`;
+        $('#barra').setAttribute('aria-valuenow', String(restantes));
+        $('#barra i').style.width = `${Math.round((restantes / REGRAS.DIAS_PARA_REATIVAR) * 100)}%`;
+        if (restantes === 0) {
+          $('#prazo').classList.add('prazo--vencido');
+          $('#prazo-texto').textContent = 'O prazo de 7 dias terminou. A conta será excluída permanentemente.';
+        }
+      } catch (erro) {
+        mostrarErro(erro);
+      }
+    }
+
+    $('#reativar').addEventListener('click', async () => {
+      $('#aviso').hidden = true;
+      try {
+        await comCarregando('Reativando sua conta', () => api.reativarConta(obterCpf()));
+        limparDesativacao(obterCpf());
+        $('#tela-fechada').hidden = true;
+        $('#tela-reativada').hidden = false;
+      } catch (erro) {
+        mostrarErro(erro);
+      }
+    });
+
+    $('#sair').addEventListener('click', () => {
+      limparSessao();
+      location.replace('boas-vindas.html');
+    });
+
+    if (iniciarPagina()) carregar();
+  </script>
+</body>
+</html>

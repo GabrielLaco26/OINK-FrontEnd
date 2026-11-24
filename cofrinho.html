@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FB88B7">
+  <title>Cofrinho · Oink</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icones/favicon-48.png">
+  <link rel="apple-touch-icon" href="assets/icones/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/componentes.css">
+  <link rel="stylesheet" href="css/paginas.css">
+</head>
+<body>
+  <main class="app">
+    <header class="cabecalho cabecalho--sem-voltar">
+      <h1>Cofrinho</h1>
+      <span class="selo">Em breve</span>
+    </header>
+
+    <!-- Cofrinho não faz parte do escopo da documentação: tela só visual -->
+    <div class="conteudo">
+      <section class="cofrinho-saldo" aria-label="Valor guardado">
+        <span>Guardado no cofrinho</span>
+        <p>R$ 0,00</p>
+        <img src="assets/img/porquinho-espiando.png" alt="">
+      </section>
+
+      <div class="linha-2">
+        <a class="btn btn--primario" href="em-breve.html">Guardar</a>
+        <a class="btn btn--contorno" style="height: 52px" href="em-breve.html">Resgatar</a>
+      </div>
+
+      <section aria-labelledby="t-metas">
+        <h2 class="secao-titulo" id="t-metas" style="font-size: 15px; color: var(--texto)">Suas metas</h2>
+        <div class="metas-vazio">
+          <img src="assets/img/rosto-rosa.png" alt="">
+          <strong>Você ainda não tem metas</strong>
+          <p>Crie uma meta e guarde um pouquinho por vez.</p>
+          <a class="btn btn--contorno" style="width: auto; height: 44px" href="em-breve.html">Criar meta</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { iniciarPagina } from './js/paginas/comum.js';
+    iniciarPagina({ menu: 'cofrinho' });
+  </script>
+</body>
+</html>
